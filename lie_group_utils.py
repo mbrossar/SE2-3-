@@ -1,15 +1,13 @@
-from utils import bmv, btrace, pltt, plts, bouter, bmtm, outer, bmtv
+from utils import bmv, btrace, plts, bouter, bmtm, outer, bmtv
 import numpy as np
-import matplotlib.pyplot as plt
 import torch
-import scipy.special
-
+torch.set_default_dtype(torch.float64)
 
 class SE3_2:
     """SE_2(3), the group of extended poses"""
     TOL = 1e-8
-    Id = torch.eye(5).cuda().float()
-    Id9 = torch.eye(9).cuda().float()
+    Id = torch.eye(5).cuda()
+    Id9 = torch.eye(9).cuda()
 
     @classmethod
     def exp(cls, xi):
@@ -186,7 +184,7 @@ class SE3_2:
     @classmethod
     def inv_left_jacobian(cls, xi):
         """
-        Batch inverse left Jacobian
+        Batch inverse left-Jacobian
         """
         phi = xi[:, :3]  # rotation part
         mu = xi[:, 3:6]  # velocity part
@@ -218,7 +216,7 @@ class SE3_2:
     @classmethod
     def left_jacobian(cls, xi):
         """
-        Batch left Jacobian
+        Batch left-Jacobian
         """
         phi = xi[:, :3]  # rotation part
         mu = xi[:, 3:6]  # velocity part
@@ -269,8 +267,7 @@ class SE3_2:
 class SO3:
     #  tolerance criterion
     TOL = 1e-8
-    Id = torch.eye(3).cuda().float()
-    dId = torch.eye(3).cuda().double()
+    Id = torch.eye(3).cuda()
 
     @classmethod
     def exp(cls, phi):
@@ -411,6 +408,7 @@ class SO3:
         J[~mask] = (s / angle).unsqueeze(1).unsqueeze(1) * Id[~mask] + \
             (1 - s / angle).unsqueeze(1).unsqueeze(1) * bouter(axis, axis) +\
             ((1 - c) / angle).unsqueeze(1).unsqueeze(1) * cls.wedge(axis)
+
         return J
 
     @classmethod
@@ -580,13 +578,6 @@ class SO3:
     def normalize(cls, Rots):
         U, _, V = torch.svd(Rots)
         S = cls.Id.clone().repeat(Rots.shape[0], 1, 1)
-        S[:, 2, 2] = torch.det(U) * torch.det(V)
-        return U.bmm(S).bmm(V.transpose(1, 2))
-
-    @classmethod
-    def dnormalize(cls, Rots):
-        U, _, V = torch.svd(Rots)
-        S = cls.dId.clone().repeat(Rots.shape[0], 1, 1)
         S[:, 2, 2] = torch.det(U) * torch.det(V)
         return U.bmm(S).bmm(V.transpose(1, 2))
 

@@ -14,4 +14,3 @@ def f_flux(T, dt):
     Phi = T.clone().view(-1, 5, 5)
     Phi[:, :3, 4] += Phi[:, :3, 3]*dt
     return Phi.squeeze()
-

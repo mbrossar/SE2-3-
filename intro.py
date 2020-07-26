@@ -18,7 +18,7 @@ import scipy.linalg
 torch.set_default_dtype(torch.float64)
 
 
-def propagate(T0, P, Upsilon, Q, method, dt, g, cholQ=0):
+def propagate(T0, Sigma, Upsilon, Q, method, dt, g, cholQ=0):
     """
     Propagate an extended pose and its uncertainty
     """
@@ -33,12 +33,12 @@ def propagate(T0, P, Upsilon, Q, method, dt, g, cholQ=0):
 
     # compute Adjoint of right transformation mean
     AdUps = SE3_2.uAd(SE3_2.uinv(Upsilon))
-    Pprime = axat(AdUps.mm(F), P)
+    Sigma_tmp = axat(AdUps.mm(F), Sigma)
     # compound the covariances based on the second-order method
-    Pprop = Pprime + Q
+    Sigma_prop = Sigma_tmp + Q
 
     if method == 2:
-        # baseline SO(3) x R^6
+        # SO(3) x R^6
         wedge_acc = SO3.uwedge(Upsilon[:3, 3]) # already multiplied by dt
         F = torch.eye(9)
         F[3:6, :3] = T0[:3, :3].t()
@@ -50,29 +50,29 @@ def propagate(T0, P, Upsilon, Q, method, dt, g, cholQ=0):
         G[:3, :3] = dt*T0[:3, :3].t()
         G[3:6, 3:6] = T0[:3, :3]*dt
         G[6:9, 3:6] = 1/2*T0[:3, :3]*(dt**2)
-        Pprop = axat(F, P) + axat(G, Q[:6, :6]/(dt**2))
+        Sigma_prop = axat(F, Sigma) + axat(G, Q[:6, :6]/(dt**2))
 
-    Pprop = (Pprop + Pprop.t())/2
-    return T, Pprop
+    Sigma_prop = (Sigma_prop + Sigma_prop.t())/2
+    return T, Sigma_prop
 
-def plot_se23_helper(T_est, P_est, color, i1, i2, i_max):
+def plot_se23_helper(T_est, P_est, color, i1, i2, i_max, path):
     P_est_chol = torch.cholesky(P_est + torch.eye(9)*1e-16)
     r = bmv(P_est_chol.expand(i_max, 9, 9), torch.randn(i_max, 9))
     Ttemp = T_est[-1].expand(i_max, 5, 5).bmm(SE3_2.exp(r.cuda()).cpu())
     p_est = Ttemp[:, :3, 4]
     plt.scatter(p_est[:, i1], p_est[:, i2], color=color, s=3)
-    if i1 == 0 and i2 == 1:
-        np.savetxt("figures/intro_est.txt", p_est.numpy(), header="x y z", comments='')
+    # if i1 == 0 and i2 == 1:
+    #     np.savetxt(path, p_est.numpy(), header="x y z", comments='')
 
-def plot_so3_helper(T_est, P_est, color, i1, i2, i_max):
+def plot_so3_helper(T_est, P_est, color, i1, i2, i_max, path):
     r = torch.randn(i_max, 3)
     P_est_chol = torch.cholesky(P_est[6:9, 6:9]+torch.eye(3)*1e-16)
     p_est = bmv(P_est_chol.expand(i_max, 3, 3), r) + T_est[-1, :3, 4]
     plt.scatter(p_est[:, i1], p_est[:, i2], color=color, s=2, alpha=0.5)
-    if i1 == 0 and i2 == 1:
-        np.savetxt("figures/intro_b.txt", p_est.numpy(), header="x y z", comments='')
+    # if i1 == 0 and i2 == 1:
+    #     np.savetxt(path, p_est.numpy(), header="x y z", comments='')
 
-def main(i_max, k_max, T0, P0, Upsilon, Q, cholQ, dt, g, sigma, m_max):
+def main(i_max, k_max, T0, Sigma0, Upsilon, Q, cholQ, dt, g, sigma, m_max, paths):
     # Generate some random samples
     T = torch.zeros(i_max, k_max, 5, 5).cuda()
     T[:, 0] = T0.cuda().repeat(i_max, 1, 1)
@@ -89,30 +89,30 @@ def main(i_max, k_max, T0, P0, Upsilon, Q, cholQ, dt, g, sigma, m_max):
     # Propagate the uncertainty methods
     T_est = torch.zeros(k_max, 5, 5)
     P_est = torch.zeros(k_max, 9, 9)
-    P_est_b = torch.zeros(k_max, 9, 9) # SO(3) x R^6 covariance
+    SigmaSO3 = torch.zeros(k_max, 9, 9) # SO(3) x R^6 covariance
     T_est[0] = T0
-    P_est[0] = P0.clone()
-    P_est_b[0] = P0.clone()
+    P_est[0] = Sigma0.clone()
+    SigmaSO3[0] = Sigma0.clone()
     for k in range(1, k_max):
         T_est[k], P_est[k] = propagate(T_est[k-1], P_est[k-1], Upsilon, Q, 1, dt, g)
         # baseline method
-        _, P_est_b[k] = propagate(T_est[k-1], P_est_b[k-1], Upsilon, Q, 2, dt, g)
+        _, SigmaSO3[k] = propagate(T_est[k-1], SigmaSO3[k-1], Upsilon, Q, 2, dt, g)
 
     # Now plot the transformations
     labels = ['x (m)', 'y (m)', 'z (m)']
     for i1, i2 in ((0, 1), (0, 2), (1, 2)):
         plt.figure()
         # Plot the covariance of the samples
-        plot_so3_helper(T_est, P_est_b[-1], "red", i1, i2, i_max)
+        plot_so3_helper(T_est, SigmaSO3[-1], "red", i1, i2, i_max, paths[1])
         # Plot the propagated covariance projected onto i1, i2
-        plot_se23_helper(T_est, P_est[-1], 'green', i1, i2, i_max)
+        plot_se23_helper(T_est, P_est[-1], 'green', i1, i2, i_max, paths[2])
         # Plot the random samples' xy-locations
         plt.scatter(T[:, -1, i1, 4], T[:, -1, i2, 4], s=1, color='black', alpha=0.5)
         plt.scatter(T_est[-1, i1, 4], T_est[-1, i2, 4], color='yellow', s=30)
         plt.xlabel(labels[i1])
         plt.ylabel(labels[i2])
-        plt.legend([r"$SO(3) \times \mathbb{R}^6$", "$SE_2(3)$"])
-    np.savetxt("figures/intro_T.txt", T[:, -1, :3, 4].numpy(), header="x y z", comments='')
+        plt.legend([r"$SO(3) \times \mathbb{R}^6$", r"$SE_2(3)$"])
+    # np.savetxt(paths[0], T[:, -1, :3, 4].numpy(), header="x y z", comments='')
     plt.show()
 
 
@@ -124,6 +124,7 @@ if __name__ == '__main__':
     m_max = 100 # plot option (number of points for each ellipse)
     g = torch.Tensor([0, 0, 9.81]) # gravity vector
     dt = 0.01 # step time (s)
+    paths = ["figures/intro_T.txt", "figures/intro_est.txt", "figures/intro_b.txt"]
 
     # Define a PDF over transformations
     Upsilon = torch.eye(5)
@@ -139,6 +140,6 @@ if __name__ == '__main__':
     T0 = torch.eye(5)
     T0[:3, 3] = torch.Tensor([5, 0, 0])
     # initial right perturbation uncertainty
-    P0 = torch.zeros(9, 9)
-    main(i_max, k_max, T0, P0, Upsilon, Q, cholQ, dt, g, sigma, m_max)
+    Sigma0 = torch.zeros(9, 9)
+    main(i_max, k_max, T0, Sigma0, Upsilon, Q, cholQ, dt, g, sigma, m_max, paths)
 

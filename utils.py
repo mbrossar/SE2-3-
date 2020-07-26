@@ -171,13 +171,13 @@ def percentile(t: torch.tensor, q: float) -> Union[int, float]:
     result = t.view(-1).kthvalue(k).values.item()
     return result
 
-def four_order(P, Q):
-        Ppp = P[:3, :3]
-        Pvp = P[3:6, :3]
-        Pvv = P[3:6, 3:6]
-        Pvr = P[3:6, 6:9]
-        Prp = P[6:9, :3]
-        Prr = P[6:9, 6:9]
+def four_order(Sigma, Q):
+        Sigma_pp = Sigma[:3, :3]
+        Sigma_vp = Sigma[3:6, :3]
+        Sigma_vv = Sigma[3:6, 3:6]
+        Sigma_vr = Sigma[3:6, 6:9]
+        Sigma_rp = Sigma[6:9, :3]
+        Sigma_rr = Sigma[6:9, 6:9]
 
         Qpp = Q[:3, :3]
         Qvp = Q[3:6, :3]
@@ -186,31 +186,31 @@ def four_order(P, Q):
         Qrp = Q[6:9, :3]
         Qrr = Q[6:9, 6:9]
 
-        A1 = P.new_zeros(9, 9)
-        A1[:3, :3] = op1(Ppp)
-        A1[3:6, :3] = op1(Pvp + Pvp.t())
-        A1[3:6, 3:6] = op1(Ppp)
-        A1[6:9, :3] = op1(Prp + Prp.t())
-        A1[6:9, 6:9] = op1(Ppp)
+        A1 = Sigma.new_zeros(9, 9)
+        A1[:3, :3] = op1(Sigma_pp)
+        A1[3:6, :3] = op1(Sigma_vp + Sigma_vp.t())
+        A1[3:6, 3:6] = op1(Sigma_pp)
+        A1[6:9, :3] = op1(Sigma_rp + Sigma_rp.t())
+        A1[6:9, 6:9] = op1(Sigma_pp)
 
-        A2 = P.new_zeros(9, 9)
+        A2 = Sigma.new_zeros(9, 9)
         A2[:3, :3] = op1(Qpp)
         A2[3:6, :3] = op1(Qvp + Qvp.t())
         A2[3:6, 3:6] = op1(Qpp)
         A2[6:9, :3] = op1(Qrp + Qrp.t())
         A2[6:9, 6:9] = op1(Qpp)
 
-        Bpp = op2(Ppp, Qpp)
-        Bvv = op2(Ppp, Qvv) + op2(Pvp.t(), Qvp) +\
-            op2(Pvp, Qvp.t()) + op2(Pvv, Qpp)
-        Brr = op2(Ppp, Qrr) + op2(Prp.t(), Qrp) +\
-            op2(Prp, Qrp.t()) + op2(Prr, Qpp)
-        Bvp = op2(Ppp, Qvp.t()) + op2(Pvp.t(), Qpp)
-        Brp = op2(Ppp, Qrp.t()) + op2(Prp.t(), Qpp)
-        Bvr = op2(Ppp, Qvr) + op2(Pvp.t(), Qrp) +\
-            op2(Prp, Qvp.t()) + op2(Pvr, Qpp)
+        Bpp = op2(Sigma_pp, Qpp)
+        Bvv = op2(Sigma_pp, Qvv) + op2(Sigma_vp.t(), Qvp) +\
+            op2(Sigma_vp, Qvp.t()) + op2(Sigma_vv, Qpp)
+        Brr = op2(Sigma_pp, Qrr) + op2(Sigma_rp.t(), Qrp) +\
+            op2(Sigma_rp, Qrp.t()) + op2(Sigma_rr, Qpp)
+        Bvp = op2(Sigma_pp, Qvp.t()) + op2(Sigma_vp.t(), Qpp)
+        Brp = op2(Sigma_pp, Qrp.t()) + op2(Sigma_rp.t(), Qpp)
+        Bvr = op2(Sigma_pp, Qvr) + op2(Sigma_vp.t(), Qrp) +\
+            op2(Sigma_rp, Qvp.t()) + op2(Sigma_vr, Qpp)
 
-        B = P.new_zeros(9, 9)
+        B = Sigma.new_zeros(9, 9)
         B[:3, :3] = Bpp
         B[:3, 3:6] = Bvp.t()
         B[:3, 6:9] = Brp.t()
@@ -221,4 +221,4 @@ def four_order(P, Q):
         B[6:9, 3:6] = B[3:6, 6:9].t()
         B[6:9, 6:9] = Brr
 
-        return (A1.mm(Q) + Q.t().mm(A1.t()) + A2.mm(P) + P.t().mm(A2.t()))/12 + B/4
+        return (A1.mm(Q) + Q.t().mm(A1.t()) + A2.mm(Sigma) + Sigma.t().mm(A2.t()))/12 + B/4
