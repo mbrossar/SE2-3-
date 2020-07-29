@@ -48,12 +48,6 @@ GTSAM is a C++ library that implements smoothing and mapping algorithms using fa
 * Proposed rotating Earth and Coriolis effect preintegration
 * Debug of the original rotating Earth and Coriolis effect preintegration
 
-where we have modified the following files:
-
-* **ManifoldPreintegration.cpp**
-* **NavState.cpp**
-* **PreintegrationBase.cpp**
-
 ## Citation
 
 If you use this code in your research, please cite:
