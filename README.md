@@ -3,9 +3,9 @@
 Associating Uncertainty to Extended Poses for on Lie Group IMU  Preintegration with Rotating Earth
 ==================================================================================================
 
-This repo contains provides Python scripts that implement the major equations from the [paper]() mentioned above. The GTSAM fork related to the papier is available at this [url](https://github.com/mbrossar/gtsam). The repo also contains [supplementary material](https://github.com/mbrossar/SE2-3-/raw/master/supplementary_material.pdf) that provides detailed proofs along with comprehensive technical derivations of the paper.
+This repo contains provides Python scripts that implement the major equations from the [paper](https://arxiv.org/pdf/2007.14097.pdf) mentioned above. The GTSAM fork related to the papier is available at this [url](https://github.com/mbrossar/gtsam). The repo also contains [supplementary material](https://github.com/mbrossar/SE2-3-/raw/master/supplementary_material.pdf) that provides detailed proofs along with comprehensive technical derivations of the paper.
 
-Paper Overview [ArXiv paper]()
+Paper Overview [ArXiv paper](https://arxiv.org/pdf/2007.14097.pdf)
 ---------------------------------------------
 A recently introduced matrix group provides a 5x5 matrix representation for the  orientation, velocity and position of an object  in the 3-D space, a triplet we call ``extended pose''. In the paper we build on this group to develop a theory to associate uncertainty with extended poses represented by 5x5 matrices. Our approach is particularly suited to describe how uncertainty propagates when the extended pose represents the state of an Inertial Measurement Unit (IMU). In particular it allows  revisiting the theory of IMU preintegration on manifold and  reaching a further theoretic level in this field. Exact preintegration formulas that account for rotating Earth, that is, centrifugal force and Coriolis force, are derived as a byproduct, and the factors are shown to be more accurate. The approach is validated through extensive simulations and applied to sensor-fusion where a loosely-coupled fixed-lag smoother fuses IMU and LiDAR on   one hour long   experiments using our experimental car. It shows how handling rotating Earth may be beneficial for long-term navigation within incremental smoothing algorithms.
 
