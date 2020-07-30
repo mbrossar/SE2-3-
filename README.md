@@ -3,7 +3,7 @@
 Associating Uncertainty to Extended Poses for on Lie Group IMU  Preintegration with Rotating Earth
 ==================================================================================================
 
-This repo contains provides Python scripts that implement the major equations from the [paper](https://arxiv.org/pdf/2007.14097.pdf) mentioned above. The GTSAM fork related to the papier is available at this [url](https://github.com/mbrossar/gtsam). The repo also contains [supplementary material](https://github.com/mbrossar/SE2-3-/raw/master/supplementary_material.pdf) that provides detailed proofs along with comprehensive technical derivations of the paper.
+This repo contains provides Python scripts that implement the major equations from the [paper](https://arxiv.org/pdf/2007.14097.pdf) mentioned above. The GTSAM fork related to the papier is available at this [url](https://github.com/mbrossar/gtsam). The repo also contains [supplementary material](https://github.com/mbrossar/SE2-3-/raw/master/supplementary_material.pdf) that provides detailed proofs with comprehensive derivations of the paper.
 
 Paper Overview [ArXiv paper](https://arxiv.org/pdf/2007.14097.pdf)
 ---------------------------------------------
@@ -11,7 +11,7 @@ A recently introduced matrix group provides a 5x5 matrix representation for the 
 
 Installation
 -------------------
-These scripts are based on the [PyTorch](https://pytorch.org/) library with CUDA installed for highly fast batch computation (It assumes the desktop is equipped with a GPU). It necessitates to install the following packages
+These scripts are based on the [PyTorch](https://pytorch.org/) library with CUDA installed for highly fast batch computation (it assumes the desktop is equipped with a GPU). It necessitates to install the following packages
 
 ```
 pip install torch torchvision pyyaml matplotlib numpy scipy typing termcolor
