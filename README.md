@@ -3,7 +3,7 @@
 Associating Uncertainty to Extended Poses for on Lie Group IMU  Preintegration with Rotating Earth
 ==================================================================================================
 
-This repo contains provides Python scripts that implement the major equations from the [paper](https://arxiv.org/pdf/2007.14097.pdf) mentioned above. The GTSAM fork related to the papier is available at this [url](https://github.com/mbrossar/gtsam). The repo also contains [supplementary material](https://github.com/mbrossar/SE2-3-/raw/master/supplementary_material.pdf) that provides detailed proofs with comprehensive derivations of the paper.
+This repo provides Python scripts that implement the major equations from the [paper](https://arxiv.org/pdf/2007.14097.pdf) mentioned above. The GTSAM fork related to the papier is available at this [url](https://github.com/mbrossar/gtsam). The repo also contains [supplementary material](https://github.com/mbrossar/SE2-3-/raw/master/supplementary_material.pdf) that provides detailed proofs with comprehensive derivations of the paper.
 
 Paper Overview [ArXiv paper](https://arxiv.org/pdf/2007.14097.pdf)
 ---------------------------------------------
